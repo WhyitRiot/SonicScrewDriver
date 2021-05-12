@@ -11,11 +11,11 @@ namespace SonicScrewDriver
 
         public class SonicModule : ItemModule
         {
-            public string projectileID = "Arrow1";
-            public string sonicWaveSpawn = "ParryPoint";
+            //public string projectileID = "Arrow1";
+            //public string sonicWaveSpawn = "ParryPoint";
 
-            public float projectileSpeed = 40f;
-            public float timeToDespawn = 1f;
+            //public float projectileSpeed = 40f;
+            //public float timeToDespawn = 1f;
 
 
 
