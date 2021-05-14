@@ -176,14 +176,17 @@ namespace SonicScrewDriver
                         if (hit.collider.GetComponentInParent<Creature>())
                         {
                             Creature creature = hit.collider.GetComponentInParent<Creature>();
-                            foreach (RagdollPart ragdoll in creature.gameObject.GetComponentsInChildren<RagdollPart>())
+                            if (!creature.isPlayer)
                             {
-                                ragdoll.rb.isKinematic = false;
-                                ragdoll.rb.AddForce(-hit.normal * 200f);
+                                foreach (RagdollPart ragdoll in creature.gameObject.GetComponentsInChildren<RagdollPart>())
+                                {
+                                    ragdoll.rb.isKinematic = false;
+                                    ragdoll.rb.AddForce(-hit.normal * 200f);
+                                }
                             }
-
                         }
-                        hit.rigidbody.AddForce(-hit.normal * 200f);
+
+
                     }
                     else if (hit.collider.GetComponentInParent<Creature>())
                     {
