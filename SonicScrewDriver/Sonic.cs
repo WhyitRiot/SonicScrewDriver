@@ -21,7 +21,7 @@ namespace SonicScrewDriver
         bool extended;
         GameObject sonicEnd;
         Vector3 sonicOrigin;
-        float sonicRange = 100;
+        float sonicRange = 200;
 
         Animator sonicExtendAnimate;
         int extendAnimHash;
@@ -81,7 +81,7 @@ namespace SonicScrewDriver
             //Event subscribers
             item.OnGrabEvent += Item_OnGrabEvent;
             item.OnHeldActionEvent += OnHeldAction;
-            //item.OnUngrabEvent += OnUngrabEvent;
+            item.OnUngrabEvent += OnUngrabEvent;
 
         }
 
@@ -145,6 +145,11 @@ namespace SonicScrewDriver
             }
         }
 
+        public void OnUngrabEvent(Handle handle, RagdollHand interactor, bool throwing)
+        {
+            handTwo = null;
+        }
+
         public void Update()
         {
             if (buttonHold)
@@ -176,19 +181,24 @@ namespace SonicScrewDriver
                         if (hit.collider.GetComponentInParent<Creature>())
                         {
                             Creature creature = hit.collider.GetComponentInParent<Creature>();
-                            if (!creature.isPlayer)
+
+                            if (creature != Player.currentCreature)
                             {
+                                creature.ragdoll.SetState(Ragdoll.State.Destabilized);
                                 foreach (RagdollPart ragdoll in creature.gameObject.GetComponentsInChildren<RagdollPart>())
                                 {
+
                                     ragdoll.rb.isKinematic = false;
                                     ragdoll.rb.AddForce(-hit.normal * 200f);
                                 }
                             }
                         }
-
-
+                        else
+                        {
+                            hit.rigidbody.AddForce(-hit.normal * 200f);
+                        }
                     }
-                    else if (hit.collider.GetComponentInParent<Creature>())
+                    else if (hit.collider.GetComponentInParent<Creature>() && hit.collider.GetComponentInParent<Creature>() != Player.currentCreature)
                     {
                         Creature creature = hit.collider.GetComponentInParent<Creature>();
 
