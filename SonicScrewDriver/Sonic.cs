@@ -14,6 +14,7 @@ namespace SonicScrewDriver
     {
         protected Item item;
         public SonicModule module;
+        String sonicType;
 
         RagdollHand handOne;
         RagdollHand handTwo;
@@ -24,6 +25,8 @@ namespace SonicScrewDriver
         float sonicRange = 200;
 
         Animator sonicExtendAnimate;
+        int extendAnimPathHash;
+        int retractAnimPathHash;
         int extendAnimHash;
         int retractAnimHash;
 
@@ -48,18 +51,20 @@ namespace SonicScrewDriver
         {
             item = this.GetComponent<Item>();
             module = item.data.GetModule<SonicModule>();
+            sonicType = module.sonicType;
 
             //Sounds setup
-            sonic = item.GetCustomReference("soundSonic").GetComponent<AudioSource>();
+            if (!String.IsNullOrEmpty(module.sonic)) sonic = item.GetCustomReference(module.sonic).GetComponent<AudioSource>();
             startPitch = sonic.pitch;
             tempPitch = startPitch;
             extendPitch = startPitch * 1.5f;
             maxPitch = startPitch * 2;
-            extend = item.GetCustomReference("soundExtend").GetComponent<AudioSource>();
-            unClick = item.GetCustomReference("soundUnclick").GetComponent<AudioSource>();
-            click = item.GetCustomReference("soundClick").GetComponent<AudioSource>();
-            clasp = item.GetCustomReference("soundClasp").GetComponent<AudioSource>();
-            jingle = item.GetCustomReference("soundJingle").GetComponent<AudioSource>();
+
+            if (!String.IsNullOrEmpty(module.extend)) extend = item.GetCustomReference(module.extend).GetComponent<AudioSource>();
+            if (!String.IsNullOrEmpty(module.unClick)) unClick = item.GetCustomReference(module.unClick).GetComponent<AudioSource>();
+            if (!String.IsNullOrEmpty(module.click)) click = item.GetCustomReference(module.click).GetComponent<AudioSource>();
+            if (!String.IsNullOrEmpty(module.clasp)) clasp = item.GetCustomReference(module.clasp).GetComponent<AudioSource>();
+            if (!String.IsNullOrEmpty(module.jingle)) jingle = item.GetCustomReference(module.jingle).GetComponent<AudioSource>();
 
             //Raycast setup
             sonicEnd = item.GetCustomReference("sonicEnd").gameObject;
@@ -70,9 +75,11 @@ namespace SonicScrewDriver
             sonicLight.enabled = false;
 
             //Animation setup
-            sonicExtendAnimate = item.GetCustomReference("sonicExtendAnimate").GetComponent<Animator>();
-            extendAnimHash = Animator.StringToHash("Base Layer.sonicExtendAnimate");
-            retractAnimHash = Animator.StringToHash("Base Layer.sonicRetract");
+            if (!String.IsNullOrEmpty(module.sonicExtendAnimate)) sonicExtendAnimate = item.GetCustomReference(module.sonicExtendAnimate).GetComponent<Animator>();
+            if (!String.IsNullOrEmpty(module.extendHash)) extendAnimHash = Animator.StringToHash(module.extendHash);
+            if (!String.IsNullOrEmpty(module.retractHash)) retractAnimHash = Animator.StringToHash(module.retractHash);
+            if (!String.IsNullOrEmpty(module.extendAnimPathHash)) extendAnimPathHash = Animator.StringToHash(module.extendAnimPathHash);
+            if (!String.IsNullOrEmpty(module.retractAnimPathHash)) retractAnimPathHash = Animator.StringToHash(module.retractAnimPathHash);
 
             //Collider
             collider = item.GetCustomReference("collider").GetComponent<CapsuleCollider>();
@@ -87,43 +94,54 @@ namespace SonicScrewDriver
 
         public void OnHeldAction(RagdollHand interactor, Handle handle, Interactable.Action action)
         {
-                if (action == Interactable.Action.AlternateUseStart)
+            if (action == Interactable.Action.AlternateUseStart)
+            {
+                AdjustPitch();
+                buttonHold = true;
+                click.Play();
+                sonic.Play();
+                sonicPlaying = true;
+                sonicLight.enabled = true;
+            }
+            if (action == Interactable.Action.AlternateUseStop)
+            {
+                buttonHold = false;
+                sonic.Stop();
+                sonicPlaying = false;
+                unClick.Play();
+                sonicLight.enabled = false;
+            }
+            if (action == Interactable.Action.UseStart)
+            {
+                if (!extended)
                 {
-                    if (extended)
+                    extended = true;
+                    if (sonicType.Equals("11"))
                     {
-                        tempPitch = extendPitch;
-                        sonic.pitch = extendPitch;
-                        maxPitch = startPitch * 3;
+                        extend.Play();
+                        StartCoroutine(playAnimation(sonicExtendAnimate, "Extending", "sonicExtendAnimate"));
                     }
                     else
                     {
-                        tempPitch = startPitch;
-                        sonic.pitch = startPitch;
+                        sonicExtendAnimate.SetBool(retractAnimHash, false);
+                        sonicExtendAnimate.SetBool(extendAnimHash, true);
+                        AdjustPitch();
                     }
-                    buttonHold = true;
-                    click.Play();
-                    sonic.Play();
-                    sonicPlaying = true;
-                    sonicLight.enabled = true;
+
+                    PlayerControl.GetHand(interactor.playerHand.side).HapticShort(2f);
                 }
-                if (action == Interactable.Action.AlternateUseStop)
+            }
+            if (action == Interactable.Action.UseStop)
+            {
+                if (sonicType.Equals("10"))
                 {
-                    buttonHold = false;
-                    sonic.Stop();
-                    sonicPlaying = false;
-                    unClick.Play();
-                    sonicLight.enabled = false;
+                    extended = false;
+                    sonicExtendAnimate.SetBool(extendAnimHash, false);
+                    sonicExtendAnimate.SetBool(retractAnimHash, true);
+                    AdjustPitch();
+                    //StartCoroutine(playAnimation(sonicExtendAnimate, "Retracting", "sonicRetract"));
                 }
-                if (action == Interactable.Action.UseStart)
-                {
-                    if (!extended)
-                    {
-                        extend.Play();
-                        extended = true;
-                        StartCoroutine(playAnimation(sonicExtendAnimate, "Extending", "sonicExtendAnimate"));
-                        PlayerControl.GetHand(interactor.playerHand.side).HapticShort(2f);
-                    }
-                }    
+            }
         }
         
         public void Item_OnGrabEvent(Handle handle, RagdollHand interactor)
@@ -157,18 +175,6 @@ namespace SonicScrewDriver
                 //Activate sonic function
                 ToggleSonic(handOne);
 
-                if (sonicPlaying)
-                {
-                    if (collider.attachedRigidbody.velocity.magnitude > 1 && sonic.pitch < maxPitch)
-                    {
-                        sonic.pitch += ((Time.deltaTime * startPitch));
-                    }
-                    else if (collider.attachedRigidbody.velocity.magnitude < 1 && sonic.pitch > tempPitch)
-                    {
-                        sonic.pitch -= ((Time.deltaTime * (startPitch + 1)));
-                    }
-                }
-
                 //Sonic wave (raycast)
                 sonicEnd = item.GetCustomReference("sonicEnd").gameObject;
                 sonicOrigin = sonicEnd.transform.position;
@@ -187,7 +193,6 @@ namespace SonicScrewDriver
                                 creature.ragdoll.SetState(Ragdoll.State.Destabilized);
                                 foreach (RagdollPart ragdoll in creature.gameObject.GetComponentsInChildren<RagdollPart>())
                                 {
-
                                     ragdoll.rb.isKinematic = false;
                                     ragdoll.rb.AddForce(-hit.normal * 200f);
                                 }
@@ -213,8 +218,33 @@ namespace SonicScrewDriver
 
         private void ToggleSonic (RagdollHand interactor = null)
         {
+            if (sonicPlaying)
+            {
+                if (collider.attachedRigidbody.velocity.magnitude > 1 && sonic.pitch < maxPitch)
+                {
+                    sonic.pitch += ((Time.deltaTime * startPitch));
+                }
+                else if (collider.attachedRigidbody.velocity.magnitude < 1 && sonic.pitch > tempPitch)
+                {
+                    sonic.pitch -= ((Time.deltaTime * (startPitch + 1)));
+                }
+            }
             if (interactor) PlayerControl.GetHand(interactor.playerHand.side).HapticShort(1f);
+        }
 
+        private void AdjustPitch()
+        {
+            if (extended)
+            {
+                tempPitch = extendPitch;
+                sonic.pitch = extendPitch;
+                maxPitch = startPitch * 3;
+            }
+            else
+            {
+                tempPitch = startPitch;
+                sonic.pitch = startPitch;
+            }
         }
 
         IEnumerator playAnimation(Animator animator, String animation, String animationName)
@@ -224,36 +254,43 @@ namespace SonicScrewDriver
 
             if (animationName == "sonicExtendAnimate")
             {
-                animHash = extendAnimHash;
+                animHash = extendAnimPathHash;
+                boolHash = extendAnimHash;
             }
             if (animationName == "sonicRetract")
             {
-                animHash = retractAnimHash;
+                animHash = retractAnimPathHash;
+                boolHash = retractAnimHash;
             }
 
-            boolHash = Animator.StringToHash(animation);
             animator.SetBool(boolHash, true);
 
             while (animator.GetCurrentAnimatorStateInfo(0).fullPathHash != animHash)
             {
                 yield return null;
             }
-
             float counter = 0;
             float waitTime = animator.GetCurrentAnimatorStateInfo(0).length;
 
             while (counter < waitTime)
             {
                 counter += Time.deltaTime;
+                AdjustPitch();
                 yield return null;
             }
 
-            if (animationName == "sonicRetract")
+            if (sonicType.Equals("11"))
             {
-                clasp.Play();
+                if (animationName == "sonicRetract")
+                {
+                    clasp.Play();
+                }
             }
-
             animator.SetBool(boolHash, false);
         }
+        //IEnumerator extendSlider(Transform slider)
+        //{
+        //    while (slider.TransformDirection.)
+        //}
     }
 }

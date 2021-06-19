@@ -424,7 +424,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy /Y "$(TargetPath)" "D:/Unity Projects/BasSDK-master/BuildStaging/Catalog/Sonic Screwdriver 11th/$(TargetFileName)"
+    <PostBuildEvent>copy /Y "$(TargetPath)" "D:/Unity Projects/BasSDK-master/BuildStaging/Catalog/Sonic Screwdriver Pack/$(TargetFileName)"
 </PostBuildEvent>
   </PropertyGroup>
 </Project>
