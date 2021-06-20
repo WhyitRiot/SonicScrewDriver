@@ -14,7 +14,7 @@ namespace SonicScrewDriver
     {
         protected Item item;
         public SonicModule module;
-        String sonicType;
+        int sonicType;
 
         RagdollHand handOne;
         RagdollHand handTwo;
@@ -116,10 +116,10 @@ namespace SonicScrewDriver
                 if (!extended)
                 {
                     extended = true;
-                    if (sonicType.Equals("11"))
+                    if (sonicType == 11)
                     {
                         extend.Play();
-                        StartCoroutine(playAnimation(sonicExtendAnimate, "Extending", "sonicExtendAnimate"));
+                        StartCoroutine(playAnimation(sonicExtendAnimate, 0));
                     }
                     else
                     {
@@ -133,13 +133,12 @@ namespace SonicScrewDriver
             }
             if (action == Interactable.Action.UseStop)
             {
-                if (sonicType.Equals("10"))
+                if (sonicType == 10)
                 {
                     extended = false;
                     sonicExtendAnimate.SetBool(extendAnimHash, false);
                     sonicExtendAnimate.SetBool(retractAnimHash, true);
                     AdjustPitch();
-                    //StartCoroutine(playAnimation(sonicExtendAnimate, "Retracting", "sonicRetract"));
                 }
             }
         }
@@ -153,7 +152,7 @@ namespace SonicScrewDriver
                 if (extended)
                 {
                     extended = false;
-                    StartCoroutine(playAnimation(sonicExtendAnimate, "Retracting", "sonicRetract"));
+                    StartCoroutine(playAnimation(sonicExtendAnimate, 1));
                 }
             }
             else
@@ -247,17 +246,17 @@ namespace SonicScrewDriver
             }
         }
 
-        IEnumerator playAnimation(Animator animator, String animation, String animationName)
+        IEnumerator playAnimation(Animator animator, int animation)
         {
             int animHash = 0;
             int boolHash = 0;
 
-            if (animationName == "sonicExtendAnimate")
+            if (animation == 0)
             {
                 animHash = extendAnimPathHash;
                 boolHash = extendAnimHash;
             }
-            if (animationName == "sonicRetract")
+            if (animation == 1)
             {
                 animHash = retractAnimPathHash;
                 boolHash = retractAnimHash;
@@ -279,18 +278,14 @@ namespace SonicScrewDriver
                 yield return null;
             }
 
-            if (sonicType.Equals("11"))
+            if (sonicType == 11)
             {
-                if (animationName == "sonicRetract")
+                if (animation == 1)
                 {
                     clasp.Play();
                 }
             }
             animator.SetBool(boolHash, false);
         }
-        //IEnumerator extendSlider(Transform slider)
-        //{
-        //    while (slider.TransformDirection.)
-        //}
     }
 }

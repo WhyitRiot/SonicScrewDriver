@@ -11,19 +11,19 @@ namespace SonicScrewDriver
 
         public class SonicModule : ItemModule
         {
-            public String sonicType;
+            public int sonicType;
 
 
             //Sounds setup
-            public String sonic; /* = item.GetCustomReference("soundSonic").GetComponent<AudioSource>();*/
-            public String extend; /*= item.GetCustomReference("soundExtend").GetComponent<AudioSource>();*/
-            public String unClick; /*= item.GetCustomReference("soundUnclick").GetComponent<AudioSource>();*/
-            public String click; /*= item.GetCustomReference("soundClick").GetComponent<AudioSource>();*/
-            public String clasp; /*= item.GetCustomReference("soundClasp").GetComponent<AudioSource>();*/
-            public String jingle; /*= item.GetCustomReference("soundJingle").GetComponent<AudioSource>();*/
+            public String sonic; 
+            public String extend; 
+            public String unClick; 
+            public String click; 
+            public String clasp; 
+            public String jingle; 
 
             //Animation setup
-            public String sonicExtendAnimate; /* = item.GetCustomReference("sonicExtendAnimate").GetComponent<Animator>();*/
+            public String sonicExtendAnimate;
             public String sonicRetract;
             public String extendHash;
             public String retractHash;
