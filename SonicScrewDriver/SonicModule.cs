@@ -30,6 +30,8 @@ namespace SonicScrewDriver
             public String extendAnimPathHash;
             public String retractAnimPathHash;
 
+            public String slide;
+
 
             public override void OnItemLoaded(Item item)
             {

@@ -46,6 +46,11 @@ namespace SonicScrewDriver
 
         CapsuleCollider collider;
 
+        Transform slide;
+        Vector3 slidePos;
+
+        bool grippedRight;
+        bool grippedLeft;
 
         protected void Awake()
         {
@@ -76,27 +81,39 @@ namespace SonicScrewDriver
 
             //Animation setup
             if (!String.IsNullOrEmpty(module.sonicExtendAnimate)) sonicExtendAnimate = item.GetCustomReference(module.sonicExtendAnimate).GetComponent<Animator>();
+            if (sonicType == 10 && !String.IsNullOrEmpty(module.sonicExtendAnimate))
+            {
+                sonicExtendAnimate.enabled = false;
+            }
             if (!String.IsNullOrEmpty(module.extendHash)) extendAnimHash = Animator.StringToHash(module.extendHash);
             if (!String.IsNullOrEmpty(module.retractHash)) retractAnimHash = Animator.StringToHash(module.retractHash);
             if (!String.IsNullOrEmpty(module.extendAnimPathHash)) extendAnimPathHash = Animator.StringToHash(module.extendAnimPathHash);
             if (!String.IsNullOrEmpty(module.retractAnimPathHash)) retractAnimPathHash = Animator.StringToHash(module.retractAnimPathHash);
 
+
+
             //Collider
             collider = item.GetCustomReference("collider").GetComponent<CapsuleCollider>();
+
+            if (!String.IsNullOrEmpty(module.slide)) slide = item.GetCustomReference("slide");
+            slidePos = new Vector3(slide.localPosition.x, slide.localPosition.y, slide.localPosition.z);
 
 
             //Event subscribers
             item.OnGrabEvent += Item_OnGrabEvent;
             item.OnHeldActionEvent += OnHeldAction;
             item.OnUngrabEvent += OnUngrabEvent;
-
         }
 
         public void OnHeldAction(RagdollHand interactor, Handle handle, Interactable.Action action)
         {
+
             if (action == Interactable.Action.AlternateUseStart)
             {
-                AdjustPitch();
+                if (sonicType != 10)
+                {
+                    AdjustPitch();
+                }
                 buttonHold = true;
                 click.Play();
                 sonic.Play();
@@ -115,36 +132,49 @@ namespace SonicScrewDriver
             {
                 if (!extended)
                 {
-                    extended = true;
                     if (sonicType == 11)
                     {
+                        extended = true;
                         extend.Play();
                         StartCoroutine(playAnimation(sonicExtendAnimate, 0));
+                        PlayerControl.GetHand(interactor.playerHand.side).HapticShort(2f);
                     }
                     else
                     {
-                        sonicExtendAnimate.SetBool(retractAnimHash, false);
-                        sonicExtendAnimate.SetBool(extendAnimHash, true);
-                        AdjustPitch();
+                        //sonicExtendAnimate.SetBool(retractAnimHash, false);
+                        //sonicExtendAnimate.SetBool(extendAnimHash, true);
+                        //AdjustPitch();
                     }
-
-                    PlayerControl.GetHand(interactor.playerHand.side).HapticShort(2f);
                 }
             }
             if (action == Interactable.Action.UseStop)
             {
                 if (sonicType == 10)
                 {
-                    extended = false;
-                    sonicExtendAnimate.SetBool(extendAnimHash, false);
-                    sonicExtendAnimate.SetBool(retractAnimHash, true);
-                    AdjustPitch();
+                    //extended = false;
+                    //sonicExtendAnimate.SetBool(extendAnimHash, false);
+                    //sonicExtendAnimate.SetBool(retractAnimHash, true);
+                    //AdjustPitch();
                 }
             }
         }
         
         public void Item_OnGrabEvent(Handle handle, RagdollHand interactor)
         {
+            if (interactor == Player.currentCreature.handRight)
+            {
+                grippedRight = true;
+            }
+            else
+            {
+                grippedLeft = true;
+            }
+
+            if (sonicType == 10)
+            {
+                StartCoroutine(extendSonicInput());
+            }
+
             if (handle.gameObject.name == "SlideHandle")
             {
                 jingle.Play();
@@ -165,6 +195,10 @@ namespace SonicScrewDriver
         public void OnUngrabEvent(Handle handle, RagdollHand interactor, bool throwing)
         {
             handTwo = null;
+            handOne = null;
+            grippedRight = false;
+            grippedLeft = false;
+            StopCoroutine(extendSonicInput());
         }
 
         public void Update()
@@ -175,7 +209,6 @@ namespace SonicScrewDriver
                 ToggleSonic(handOne);
 
                 //Sonic wave (raycast)
-                sonicEnd = item.GetCustomReference("sonicEnd").gameObject;
                 sonicOrigin = sonicEnd.transform.position;
                 RaycastHit hit;
 
@@ -208,7 +241,7 @@ namespace SonicScrewDriver
 
                         foreach (RagdollHand hand in creature.gameObject.GetComponentsInChildren<RagdollHand>())
                         {
-                           hand.UnGrab(true);
+                            hand.UnGrab(true);
                         }
                     }
                 }
@@ -244,6 +277,48 @@ namespace SonicScrewDriver
                 tempPitch = startPitch;
                 sonic.pitch = startPitch;
             }
+        }
+
+        IEnumerator extendSonicInput()
+        {
+            while (true)
+            {
+                float x; float y; float z;
+                y = slide.localPosition.y; z = slide.localPosition.z;
+                if (grippedRight)
+                {
+                    if (Player.currentCreature.handRight.playerHand.controlHand.useAxis > 0f)
+                    {
+                        extended = true;
+                        x = 0.0491f * Player.currentCreature.handRight.playerHand.controlHand.useAxis + 0.0809f;
+                        slide.localPosition = new Vector3(x, y, z);
+                        sonic.pitch = 0.5f * Player.currentCreature.handRight.playerHand.controlHand.useAxis + 1f;
+                    }
+                    else
+                    {
+                        extended = false;
+                        slide.localPosition = slidePos;
+                        sonic.pitch = startPitch;
+                    }
+                }
+                if (grippedLeft)
+                {
+                    if (Player.currentCreature.handLeft.playerHand.controlHand.useAxis > 0f)
+                    {
+                        extended = true;
+                        x = 0.0491f * Player.currentCreature.handLeft.playerHand.controlHand.useAxis + 0.0809f;
+                        slide.localPosition = new Vector3(x, y, z);
+                        sonic.pitch = 0.5f * Player.currentCreature.handLeft.playerHand.controlHand.useAxis + 1f;
+                    }
+                    else
+                    {
+                        extended = false;
+                        slide.localPosition = slidePos;
+                        sonic.pitch = startPitch;
+                    }
+                }
+                yield return null;
+            }       
         }
 
         IEnumerator playAnimation(Animator animator, int animation)
