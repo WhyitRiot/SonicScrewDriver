@@ -63,7 +63,7 @@ namespace SonicScrewDriver
             startPitch = sonic.pitch;
             tempPitch = startPitch;
             extendPitch = startPitch * 1.5f;
-            maxPitch = startPitch * 2;
+            maxPitch = startPitch * 3;
 
             if (!String.IsNullOrEmpty(module.extend)) extend = item.GetCustomReference(module.extend).GetComponent<AudioSource>();
             if (!String.IsNullOrEmpty(module.unClick)) unClick = item.GetCustomReference(module.unClick).GetComponent<AudioSource>();
@@ -107,13 +107,9 @@ namespace SonicScrewDriver
 
         public void OnHeldAction(RagdollHand interactor, Handle handle, Interactable.Action action)
         {
-
             if (action == Interactable.Action.AlternateUseStart)
             {
-                if (sonicType != 10)
-                {
-                    AdjustPitch();
-                }
+                AdjustPitch();
                 buttonHold = true;
                 click.Play();
                 sonic.Play();
@@ -141,9 +137,7 @@ namespace SonicScrewDriver
                     }
                     else
                     {
-                        //sonicExtendAnimate.SetBool(retractAnimHash, false);
-                        //sonicExtendAnimate.SetBool(extendAnimHash, true);
-                        //AdjustPitch();
+                        AdjustPitch();
                     }
                 }
             }
@@ -151,10 +145,7 @@ namespace SonicScrewDriver
             {
                 if (sonicType == 10)
                 {
-                    //extended = false;
-                    //sonicExtendAnimate.SetBool(extendAnimHash, false);
-                    //sonicExtendAnimate.SetBool(retractAnimHash, true);
-                    //AdjustPitch();
+                    AdjustPitch();
                 }
             }
         }
@@ -254,11 +245,11 @@ namespace SonicScrewDriver
             {
                 if (collider.attachedRigidbody.velocity.magnitude > 1 && sonic.pitch < maxPitch)
                 {
-                    sonic.pitch += ((Time.deltaTime * startPitch));
+                    tempPitch += ((Time.deltaTime * startPitch));
                 }
-                else if (collider.attachedRigidbody.velocity.magnitude < 1 && sonic.pitch > tempPitch)
+                else if (collider.attachedRigidbody.velocity.magnitude < 1 && sonic.pitch > startPitch)
                 {
-                    sonic.pitch -= ((Time.deltaTime * (startPitch + 1)));
+                    tempPitch -= ((Time.deltaTime * (startPitch + 1)));
                 }
             }
             if (interactor) PlayerControl.GetHand(interactor.playerHand.side).HapticShort(1f);
@@ -268,15 +259,16 @@ namespace SonicScrewDriver
         {
             if (extended)
             {
-                tempPitch = extendPitch;
-                sonic.pitch = extendPitch;
-                maxPitch = startPitch * 3;
+                if (sonicType != 10)
+                {
+                    startPitch = extendPitch;
+                }
             }
             else
             {
-                tempPitch = startPitch;
-                sonic.pitch = startPitch;
+                startPitch = 1;
             }
+            sonic.pitch = tempPitch + startPitch;
         }
 
         IEnumerator extendSonicInput()
@@ -284,39 +276,32 @@ namespace SonicScrewDriver
             while (true)
             {
                 float x; float y; float z;
+                float axis = 0f;
                 y = slide.localPosition.y; z = slide.localPosition.z;
-                if (grippedRight)
+                if (grippedRight | grippedLeft)
                 {
-                    if (Player.currentCreature.handRight.playerHand.controlHand.useAxis > 0f)
+                    if (grippedRight)
+                    {
+                        axis = Player.currentCreature.handRight.playerHand.controlHand.useAxis;
+                    }
+                    if (grippedLeft)
+                    {
+                        axis = Player.currentCreature.handLeft.playerHand.controlHand.useAxis;
+                    }
+
+                    if (axis > 0f)
                     {
                         extended = true;
                         x = 0.0491f * Player.currentCreature.handRight.playerHand.controlHand.useAxis + 0.0809f;
                         slide.localPosition = new Vector3(x, y, z);
-                        sonic.pitch = 0.5f * Player.currentCreature.handRight.playerHand.controlHand.useAxis + 1f;
+                        startPitch = 0.5f * Player.currentCreature.handRight.playerHand.controlHand.useAxis + 1f;
                     }
                     else
                     {
                         extended = false;
                         slide.localPosition = slidePos;
-                        sonic.pitch = startPitch;
                     }
-                }
-                if (grippedLeft)
-                {
-                    if (Player.currentCreature.handLeft.playerHand.controlHand.useAxis > 0f)
-                    {
-                        extended = true;
-                        x = 0.0491f * Player.currentCreature.handLeft.playerHand.controlHand.useAxis + 0.0809f;
-                        slide.localPosition = new Vector3(x, y, z);
-                        sonic.pitch = 0.5f * Player.currentCreature.handLeft.playerHand.controlHand.useAxis + 1f;
-                    }
-                    else
-                    {
-                        extended = false;
-                        slide.localPosition = slidePos;
-                        sonic.pitch = startPitch;
-                    }
-                }
+                }    
                 yield return null;
             }       
         }

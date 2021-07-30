@@ -11,6 +11,7 @@ namespace SonicScrewDriver
 
         public class SonicModule : ItemModule
         {
+            //2, 3, 4, 10, 11
             public int sonicType;
 
 
@@ -29,7 +30,6 @@ namespace SonicScrewDriver
             public String retractHash;
             public String extendAnimPathHash;
             public String retractAnimPathHash;
-
             public String slide;
 
 
