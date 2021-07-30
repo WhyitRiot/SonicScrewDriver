@@ -273,35 +273,32 @@ namespace SonicScrewDriver
 
         IEnumerator extendSonicInput()
         {
-            while (true)
+            while (grippedRight | grippedLeft)
             {
                 float x; float y; float z;
                 float axis = 0f;
                 y = slide.localPosition.y; z = slide.localPosition.z;
-                if (grippedRight | grippedLeft)
+                if (grippedRight)
                 {
-                    if (grippedRight)
-                    {
-                        axis = Player.currentCreature.handRight.playerHand.controlHand.useAxis;
-                    }
-                    if (grippedLeft)
-                    {
-                        axis = Player.currentCreature.handLeft.playerHand.controlHand.useAxis;
-                    }
+                    axis = Player.currentCreature.handRight.playerHand.controlHand.useAxis;
+                }
+                if (grippedLeft)
+                {
+                    axis = Player.currentCreature.handLeft.playerHand.controlHand.useAxis;
+                }
 
-                    if (axis > 0f)
-                    {
-                        extended = true;
-                        x = 0.0491f * Player.currentCreature.handRight.playerHand.controlHand.useAxis + 0.0809f;
-                        slide.localPosition = new Vector3(x, y, z);
-                        startPitch = 0.5f * Player.currentCreature.handRight.playerHand.controlHand.useAxis + 1f;
-                    }
-                    else
-                    {
-                        extended = false;
-                        slide.localPosition = slidePos;
-                    }
-                }    
+                if (axis > 0f)
+                {
+                    extended = true;
+                    x = 0.0491f * axis + 0.0809f;
+                    slide.localPosition = new Vector3(x, y, z);
+                    startPitch = 0.5f * axis + 1f;
+                }
+                else
+                {
+                    extended = false;
+                    slide.localPosition = slidePos;
+                }
                 yield return null;
             }       
         }
