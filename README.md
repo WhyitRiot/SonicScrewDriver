@@ -7,4 +7,4 @@ Add Sonic Screwdriver functionality to B&amp;S
   Use button: Activate Sonic
       -Disarms enemies
   Primary trigger: Extend Sonic
-      -Pushes enemies(WIP) and items back
+      -Pushes enemies and items back
