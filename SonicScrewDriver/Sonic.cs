@@ -96,8 +96,7 @@ namespace SonicScrewDriver
             collider = item.GetCustomReference("collider").GetComponent<CapsuleCollider>();
 
             if (!String.IsNullOrEmpty(module.slide)) slide = item.GetCustomReference("slide");
-            slidePos = new Vector3(slide.localPosition.x, slide.localPosition.y, slide.localPosition.z);
-
+            if (!String.IsNullOrEmpty(module.slide)) slidePos = new Vector3(slide.localPosition.x, slide.localPosition.y, slide.localPosition.z);
 
             //Event subscribers
             item.OnGrabEvent += Item_OnGrabEvent;
@@ -189,7 +188,10 @@ namespace SonicScrewDriver
             handOne = null;
             grippedRight = false;
             grippedLeft = false;
-            StopCoroutine(extendSonicInput());
+            if (sonicType == 10)
+            {
+                StopCoroutine(extendSonicInput());
+            }
         }
 
         public void Update()
@@ -198,6 +200,7 @@ namespace SonicScrewDriver
             {
                 //Activate sonic function
                 ToggleSonic(handOne);
+                AdjustPitch();
 
                 //Sonic wave (raycast)
                 sonicOrigin = sonicEnd.transform.position;
