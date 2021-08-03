@@ -20,7 +20,13 @@ namespace SonicScrewDriver
         public String unClick; 
         public String click; 
         public String clasp; 
-        public String jingle; 
+        public String jingle;
+
+        //Light
+        public String light;
+
+        //Collider
+        public String collider;
 
         //Animation setup
         public String sonicExtendAnimate;
