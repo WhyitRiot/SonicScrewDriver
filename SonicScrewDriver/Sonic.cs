@@ -156,19 +156,6 @@ namespace SonicScrewDriver
                     pressCooldown = 0.5f;
                     pressCount++;
                 }
-                //doublePress = false;
-                //if (firstPress)
-                //{
-                //    if (Time.time - timeOffPress < 0.5f)
-                //    {
-                //        doublePress = true;
-                //    }
-                //}
-                //if (!firstPress)
-                //{
-                //    firstPress = true;
-                //    timeOffPress = Time.time;
-                //}
                 if (sonicType == 2 || sonicType == 10 || sonicType == 11 || sonicType == 12)
                 {
                     buttonHold = true;
@@ -334,14 +321,6 @@ namespace SonicScrewDriver
 
         public void Update()
         {
-            //if (Player.currentCreature.handRight.playerHand.controlHand.alternateUsePressed)
-            //{
-            //    Debug.Log("Right AltUse pressed");
-            //}
-            //if (Player.currentCreature.handLeft.playerHand.controlHand.alternateUsePressed)
-            //{
-            //    Debug.Log("Left AltUse pressed");
-            //}
 
             //Fix volume
             foreach (AudioSource i in audioSources)
@@ -358,26 +337,6 @@ namespace SonicScrewDriver
             {
                 pressCount = 0;
             }
-
-            //float intensity = 0.001f; /*DEBUG*/
-            //if (Input.GetKey(KeyCode.LeftShift))
-            //{
-            //    intensity = 0.0001f;
-            //}
-            //if (Input.GetKey(KeyCode.UpArrow))
-            //{
-            //    foreach (Light i in SonicLights.sonicLights)
-            //    {
-            //        i.intensity += intensity;
-            //    }
-            //}
-            //if (Input.GetKey(KeyCode.DownArrow))
-            //{
-            //    foreach (Light i in SonicLights.sonicLights)
-            //    {
-            //        i.intensity -= intensity;
-            //    }
-            //}
 
             if (buttonHold)
             {
