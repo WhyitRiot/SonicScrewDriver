@@ -419,6 +419,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Sonic.cs" />
+    <Compile Include="SonicLights.cs" />
     <Compile Include="SonicModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

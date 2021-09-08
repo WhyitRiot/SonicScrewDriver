@@ -24,6 +24,7 @@ namespace SonicScrewDriver
 
         //Light
         public String light;
+        public String lightGroup;
 
         //Collider
         public String collider;

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using ThunderRoad;
-
 
 namespace SonicScrewDriver
 {
@@ -16,6 +16,10 @@ namespace SonicScrewDriver
         RagdollHand handTwo;
         bool buttonHold;
         bool extended;
+        bool doublePress = false;
+        bool fadein = true;
+        int pressCount = 0;
+        float pressCooldown = 0.5f;
         GameObject sonicEnd;
         Vector3 sonicOrigin;
         float sonicRange = 200;
@@ -28,6 +32,7 @@ namespace SonicScrewDriver
 
         Light sonicLight;
 
+        List<AudioSource> audioSources = new List<AudioSource>();
         AudioSource sonic;
         bool sonicPlaying;
         float startPitch;
@@ -57,17 +62,46 @@ namespace SonicScrewDriver
             sonicType = module.sonicType;
 
             //Sounds setup
-            if (!String.IsNullOrEmpty(module.sonic)) sonic = item.GetCustomReference(module.sonic).GetComponent<AudioSource>();
+            if (!String.IsNullOrEmpty(module.sonic))
+            {
+                sonic = item.GetCustomReference(module.sonic).GetComponent<AudioSource>();
+                audioSources.Add(sonic);
+            }
             startPitch = sonic.pitch;
-            tempPitch = startPitch;
+            tempPitch = 0f;
             extendPitch = startPitch * 1.5f;
             maxPitch = startPitch * 3;
 
-            if (!String.IsNullOrEmpty(module.extend)) extend = item.GetCustomReference(module.extend).GetComponent<AudioSource>();
-            if (!String.IsNullOrEmpty(module.unClick)) unClick = item.GetCustomReference(module.unClick).GetComponent<AudioSource>();
-            if (!String.IsNullOrEmpty(module.click)) click = item.GetCustomReference(module.click).GetComponent<AudioSource>();
-            if (!String.IsNullOrEmpty(module.clasp)) clasp = item.GetCustomReference(module.clasp).GetComponent<AudioSource>();
-            if (!String.IsNullOrEmpty(module.jingle)) jingle = item.GetCustomReference(module.jingle).GetComponent<AudioSource>();
+            if (!String.IsNullOrEmpty(module.extend))
+            {
+                extend = item.GetCustomReference(module.extend).GetComponent<AudioSource>();
+                audioSources.Add(extend);
+            }
+            if (!String.IsNullOrEmpty(module.unClick))
+            {
+                unClick = item.GetCustomReference(module.unClick).GetComponent<AudioSource>();
+                audioSources.Add(unClick);
+            }
+            if (!String.IsNullOrEmpty(module.click))
+            {
+                click = item.GetCustomReference(module.click).GetComponent<AudioSource>();
+                audioSources.Add(click);
+            }
+            if (!String.IsNullOrEmpty(module.clasp))
+            {
+                clasp = item.GetCustomReference(module.clasp).GetComponent<AudioSource>();
+                audioSources.Add(clasp);
+            }
+            if (!String.IsNullOrEmpty(module.jingle))
+            {
+                jingle = item.GetCustomReference(module.jingle).GetComponent<AudioSource>();
+                audioSources.Add(jingle);
+            }
+
+            foreach (AudioSource i in audioSources)
+            {
+                i.volume = GameManager.options.effectVolume;
+            }
 
             //Raycast setup
             sonicEnd = item.GetCustomReference("sonicEnd").gameObject;
@@ -76,8 +110,13 @@ namespace SonicScrewDriver
             //Light setup
             if (!String.IsNullOrEmpty(module.light))
             {
-                sonicLight = item.GetCustomReference("sonicLight").GetComponent<Light>();
+                sonicLight = item.GetCustomReference(module.light).GetComponent<Light>();
                 sonicLight.enabled = false;
+            }
+            if (!String.IsNullOrEmpty(module.lightGroup))
+            {
+                SonicLights.InitializeLights(item.GetCustomReference(module.lightGroup).gameObject);
+                SonicLights.ToggleLights();
             }
 
             //Animation setup
@@ -102,31 +141,87 @@ namespace SonicScrewDriver
             item.OnGrabEvent += Item_OnGrabEvent;
             item.OnHeldActionEvent += OnHeldAction;
             item.OnUngrabEvent += OnUngrabEvent;
-
         }
 
         public void OnHeldAction(RagdollHand interactor, Handle handle, Interactable.Action action)
         {
             if (action == Interactable.Action.AlternateUseStart)
             {
-                if (sonicType == 10 || sonicType == 11)
+                if (pressCooldown > 0 && pressCount == 1)
+                {
+                    doublePress = true;
+                }
+                else
+                {
+                    pressCooldown = 0.5f;
+                    pressCount++;
+                }
+                //doublePress = false;
+                //if (firstPress)
+                //{
+                //    if (Time.time - timeOffPress < 0.5f)
+                //    {
+                //        doublePress = true;
+                //    }
+                //}
+                //if (!firstPress)
+                //{
+                //    firstPress = true;
+                //    timeOffPress = Time.time;
+                //}
+                if (sonicType == 2 || sonicType == 10 || sonicType == 11 || sonicType == 12)
                 {
                     buttonHold = true;
                     sonic.Play();
                     click.Play();
                     sonicPlaying = true;
-                    sonicLight.enabled = true;
+
+                    if (sonicType != 12)
+                    {
+                        sonicLight.enabled = true;
+                    }
+                    else
+                    {
+                        if (doublePress && !extended)
+                        {
+                            StartCoroutine(RotatingLights());
+                        }
+                        else
+                        {
+                            SonicLights.ToggleLights();
+                            if (extended == true)
+                            {
+                                SonicLights.SetMode(1);
+                            }
+                            else
+                            {
+                                SonicLights.SetMode(0);
+                            }
+                        }
+                    }
                 }
             }
             if (action == Interactable.Action.AlternateUseStop)
             {
-                if (sonicType == 10 || sonicType == 11)
+                if (sonicType == 2 || sonicType == 10 || sonicType == 11 || sonicType == 12)
                 {
                     buttonHold = false;
                     sonic.Stop();
                     sonicPlaying = false;
                     unClick.Play();
-                    sonicLight.enabled = false;
+
+                    if (sonicType != 12)
+                    {
+                        sonicLight.enabled = false;
+                    }
+                    else
+                    {
+                        if (!doublePress)
+                        {
+                            SonicLights.ToggleLights();
+                        }
+                    }
+                    doublePress = false;
                 }
             }
             if (action == Interactable.Action.UseStart)
@@ -139,6 +234,10 @@ namespace SonicScrewDriver
                         extend.Play();
                         StartCoroutine(playAnimation(sonicExtendAnimate, 0));
                         PlayerControl.GetHand(interactor.playerHand.side).HapticShort(2f);
+                    }
+                    if (sonicType == 12)
+                    {
+                        extended = true;
                     }
                 }
                 if (sonicType == 3 || sonicType == 4)
@@ -155,6 +254,11 @@ namespace SonicScrewDriver
                     buttonHold = false;
                     sonic.Stop();
                     sonicPlaying = true;
+                }
+                if (sonicType == 12)
+                {
+                    extended = false;
+                    SonicLights.SetIntensity(0.003f);
                 }
             }
         }
@@ -230,48 +334,128 @@ namespace SonicScrewDriver
 
         public void Update()
         {
+            //if (Player.currentCreature.handRight.playerHand.controlHand.alternateUsePressed)
+            //{
+            //    Debug.Log("Right AltUse pressed");
+            //}
+            //if (Player.currentCreature.handLeft.playerHand.controlHand.alternateUsePressed)
+            //{
+            //    Debug.Log("Left AltUse pressed");
+            //}
+
+            //Fix volume
+            foreach (AudioSource i in audioSources)
+            {
+                i.volume = GameManager.options.effectVolume + 1;
+            }
+
+            //Double press cooldown
+            if (pressCooldown > 0)
+            {
+                pressCooldown -= Time.deltaTime;
+            }
+            else
+            {
+                pressCount = 0;
+            }
+
+            //float intensity = 0.001f; /*DEBUG*/
+            //if (Input.GetKey(KeyCode.LeftShift))
+            //{
+            //    intensity = 0.0001f;
+            //}
+            //if (Input.GetKey(KeyCode.UpArrow))
+            //{
+            //    foreach (Light i in SonicLights.sonicLights)
+            //    {
+            //        i.intensity += intensity;
+            //    }
+            //}
+            //if (Input.GetKey(KeyCode.DownArrow))
+            //{
+            //    foreach (Light i in SonicLights.sonicLights)
+            //    {
+            //        i.intensity -= intensity;
+            //    }
+            //}
+
             if (buttonHold)
             {
                 //Activate sonic function
                 ToggleSonic(handOne);
                 AdjustPitch();
 
-                //Sonic wave (raycast)
-                sonicOrigin = sonicEnd.transform.position;
-                RaycastHit hit;
-
-                if (Physics.Raycast(sonicOrigin, sonicEnd.transform.TransformDirection(Vector3.forward), out hit, sonicRange))
+                if (extended && doublePress && sonicType == 12)
                 {
-                    if (extended)
+                    if (fadein)
                     {
-                        if (hit.collider.GetComponentInParent<Creature>())
+                        if (SonicLights.sonicLights[0].intensity < 0.01)
                         {
-                            Creature creature = hit.collider.GetComponentInParent<Creature>();
-
-                            if (creature != Player.currentCreature)
-                            {
-                                creature.ragdoll.SetState(Ragdoll.State.Destabilized);
-                                foreach (RagdollPart ragdoll in creature.gameObject.GetComponentsInChildren<RagdollPart>())
-                                {
-                                    ragdoll.rb.isKinematic = false;
-                                    ragdoll.rb.AddForce(-hit.normal * 200f);
-                                }
-                            }
+                            SonicLights.IncreaseIntensity();
                         }
                         else
                         {
-                            hit.rigidbody.AddForce(-hit.normal * 200f);
+                            fadein = false;
                         }
                     }
-                    else if (hit.collider.GetComponentInParent<Creature>() && hit.collider.GetComponentInParent<Creature>() != Player.currentCreature)
+                    else
                     {
-                        Creature creature = hit.collider.GetComponentInParent<Creature>();
-
-                        foreach (RagdollHand hand in creature.gameObject.GetComponentsInChildren<RagdollHand>())
+                        if (SonicLights.sonicLights[0].intensity >= 0.01)
                         {
-                            hand.UnGrab(true);
+                            SonicLights.DecreaseIntensity();
+                        }
+                        else
+                        {
+                            fadein = true;
                         }
                     }
+                }
+
+                //Sonic wave (raycast)
+                try
+                {
+                    sonicOrigin = sonicEnd.transform.position;
+                    RaycastHit hit;
+
+                    if (Physics.Raycast(sonicOrigin, sonicEnd.transform.TransformDirection(Vector3.forward), out hit, sonicRange))
+                    {
+                        if (extended)
+                        {
+                            if (hit.collider.GetComponentInParent<Creature>())
+                            {
+                                Creature creature = hit.collider.GetComponentInParent<Creature>();
+
+                                if (creature != Player.currentCreature)
+                                {
+                                    if (creature.currentHealth != 0)
+                                    {
+                                        creature.ragdoll.SetState(Ragdoll.State.Destabilized);
+                                    }
+                                    foreach (RagdollPart ragdoll in creature.gameObject.GetComponentsInChildren<RagdollPart>())
+                                    {
+                                        ragdoll.rb.AddForce(-hit.normal * 200f);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                hit.rigidbody.AddForce(-hit.normal * 200f);
+                            }
+                        }
+                        else if (hit.collider.GetComponentInParent<Creature>() && hit.collider.GetComponentInParent<Creature>() != Player.currentCreature)
+                        {
+                            Creature creature = hit.collider.GetComponentInParent<Creature>();
+
+                            foreach (RagdollHand hand in creature.gameObject.GetComponentsInChildren<RagdollHand>())
+                            {
+                                hand.UnGrab(true);
+                            }
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.Log(e);
                 }
             }
         }
@@ -306,6 +490,37 @@ namespace SonicScrewDriver
                 startPitch = 1;
             }
             sonic.pitch = tempPitch + startPitch;
+        }
+
+        IEnumerator RotatingLights()
+        {
+            bool pressed = true;
+            while (pressed)
+            {
+                for (int i = 1; i < 5; i++)
+                {
+                    SonicLights.ToggleSingleLight(i);
+                    yield return new WaitForSeconds(0.064f);
+                    SonicLights.ToggleSingleLight(i);
+                    Debug.Log("Activating " + SonicLights.sonicLights[0].intensity);
+                    if (grippedLeft)
+                    {
+                        pressed = Player.currentCreature.handLeft.playerHand.controlHand.alternateUsePressed;
+                        Debug.Log("Left hand AltUse");
+                    }
+                    if (grippedRight)
+                    {
+                        pressed = Player.currentCreature.handRight.playerHand.controlHand.alternateUsePressed;
+                        Debug.Log("Right hand AltUse");
+                    }
+                    if (pressed == false)
+                    {
+                        Debug.Log("Pressed is false");
+                        break;
+                    }
+                }
+            }
+            SonicLights.TurnOffLights();
         }
 
         IEnumerator extendSonicInput()
