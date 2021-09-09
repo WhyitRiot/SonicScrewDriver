@@ -1,29 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace SonicScrewDriver
 {
     class SonicLights
     {
-        public static Light[] sonicLights;
-        static Color green = new Color(0f, 128f, 22f);
-        static Color blue = new Color(0f, 42f, 128f);
+        public Light[] sonicLights;
+        private Color green = new Color(0f, 128f, 22f);
+        private Color blue = new Color(0f, 42f, 128f);
 
-        public static void InitializeLights(GameObject lightGroup)
+        public SonicLights(int lights, string[] lightObjects, GameObject lightGroup)
         {
-            sonicLights = new Light[5];
-            sonicLights[0] = lightGroup.transform.Find("Tip").GetComponent<Light>();
-            sonicLights[1] = lightGroup.transform.Find("Top1").GetComponent<Light>();
-            sonicLights[2] = lightGroup.transform.Find("Top2").GetComponent<Light>();
-            sonicLights[3] = lightGroup.transform.Find("Top3").GetComponent<Light>();
-            sonicLights[4] = lightGroup.transform.Find("Top4").GetComponent<Light>();
+            sonicLights = new Light[lights];
+            for (int i = 0; i < lights; i++)
+            {
+                sonicLights[i] = lightGroup.transform.Find(lightObjects[i]).GetComponent<Light>();
+                Debug.Log("Light [" + i + "]: " + lightObjects[i]);
+            }
         }
 
-        public static void ToggleLights()
+        public void ToggleLights()
         {
             foreach (Light i in sonicLights)
             {
@@ -32,11 +27,10 @@ namespace SonicScrewDriver
                     continue;
                 }
                 i.enabled = !i.enabled;
-                Debug.Log("Intensity " + i.intensity);
             }
         }
 
-        public static void TurnOffLights()
+        public void TurnOffLights()
         {
             foreach (Light i in sonicLights)
             {
@@ -48,7 +42,7 @@ namespace SonicScrewDriver
             }
         }
 
-        public static void TurnOnLights()
+        public void TurnOnLights()
         {
             foreach(Light i in sonicLights)
             {
@@ -60,7 +54,7 @@ namespace SonicScrewDriver
             }
         }
 
-        public static void ToggleSingleLight(int i1)
+        public void ToggleSingleLight(int i1)
         {
             if (sonicLights[i1] != null)
             {
@@ -68,23 +62,15 @@ namespace SonicScrewDriver
             }
         }
 
-        public static void DecreaseIntensity()
-        {
-            foreach (Light i in sonicLights)
-            {
-                i.intensity -= 0.0001f;
-            }
-        }
-
-        public static void IncreaseIntensity()
+        public void AddIntensity(float intensity)
         {
             foreach(Light i in sonicLights)
             {
-                i.intensity += 0.0001f;
+                i.intensity += intensity;
             }
         }
 
-        public static void SetIntensity(float intensity)
+        public void SetIntensity(float intensity)
         {
             foreach(Light i in sonicLights)
             {
@@ -96,7 +82,23 @@ namespace SonicScrewDriver
             }
         }
 
-        public static void SetMode(int mode)
+        public void DecreaseIntensity(float intensity)
+        {
+            foreach (Light i in sonicLights)
+            {
+                if (i == null)
+                {
+                    continue;
+                }
+                if (i.intensity - intensity < 0f)
+                {
+                    i.intensity = 0f;
+                }
+                i.intensity -= intensity;
+            }
+        }
+
+        public void SetMode(int mode)
         {
             switch (mode)
             {

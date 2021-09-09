@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.VFX;
 using ThunderRoad;
 
 namespace SonicScrewDriver
@@ -17,12 +18,11 @@ namespace SonicScrewDriver
         bool buttonHold;
         bool extended;
         bool doublePress = false;
-        bool fadein = true;
         int pressCount = 0;
         float pressCooldown = 0.5f;
         GameObject sonicEnd;
         Vector3 sonicOrigin;
-        float sonicRange = 200;
+        float sonicRange = 200f;
 
         Animator sonicExtendAnimate;
         int extendAnimPathHash;
@@ -31,6 +31,7 @@ namespace SonicScrewDriver
         int retractAnimHash;
 
         Light sonicLight;
+        static SonicLights twlthLights;
 
         List<AudioSource> audioSources = new List<AudioSource>();
         AudioSource sonic;
@@ -115,8 +116,8 @@ namespace SonicScrewDriver
             }
             if (!String.IsNullOrEmpty(module.lightGroup))
             {
-                SonicLights.InitializeLights(item.GetCustomReference(module.lightGroup).gameObject);
-                SonicLights.ToggleLights();
+                twlthLights = new SonicLights(module.lightNumber, module.lightObjects, item.GetCustomReference(module.lightGroup).gameObject);
+                twlthLights.ToggleLights();
             }
 
             //Animation setup
@@ -169,20 +170,29 @@ namespace SonicScrewDriver
                     }
                     else
                     {
-                        if (doublePress && !extended)
+                        if (doublePress && !coroutineRunning)
                         {
-                            StartCoroutine(RotatingLights());
-                        }
-                        else
-                        {
-                            SonicLights.ToggleLights();
-                            if (extended == true)
+                            if (!extended)
                             {
-                                SonicLights.SetMode(1);
+                                StartCoroutine(RotatingLights());
+                                coroutineRunning = true;
                             }
                             else
                             {
-                                SonicLights.SetMode(0);
+                                StartCoroutine(PulsingLights());
+                                coroutineRunning = true;
+                            }
+                        }
+                        else
+                        {
+                            twlthLights.ToggleLights();
+                            if (extended == true)
+                            {
+                                twlthLights.SetMode(1);
+                            }
+                            else
+                            {
+                                twlthLights.SetMode(0);
                             }
                         }
                     }
@@ -205,7 +215,7 @@ namespace SonicScrewDriver
                     {
                         if (!doublePress)
                         {
-                            SonicLights.ToggleLights();
+                            twlthLights.ToggleLights();
                         }
                     }
                     doublePress = false;
@@ -245,7 +255,7 @@ namespace SonicScrewDriver
                 if (sonicType == 12)
                 {
                     extended = false;
-                    SonicLights.SetIntensity(0.003f);
+                    twlthLights.SetIntensity(0.003f);
                 }
             }
         }
@@ -264,7 +274,7 @@ namespace SonicScrewDriver
                 }
             }
 
-            if (sonicType != 11 && sonicType != 2)
+            if (sonicType == 10 || sonicType == 4 || sonicType == 3)
             {
                 if (coroutineRunning == false)
                 {
@@ -311,7 +321,7 @@ namespace SonicScrewDriver
             grippedLeft = false;
             if (handle.gameObject.name != "SlideHandle")
             {
-                if (sonicType != 11 && sonicType != 2)
+                if (sonicType == 10 || sonicType == 3 || sonicType == 4)
                 {
                     StopCoroutine(extendSonicInput());
                     coroutineRunning = false;
@@ -344,36 +354,11 @@ namespace SonicScrewDriver
                 ToggleSonic(handOne);
                 AdjustPitch();
 
-                if (extended && doublePress && sonicType == 12)
-                {
-                    if (fadein)
-                    {
-                        if (SonicLights.sonicLights[0].intensity < 0.01)
-                        {
-                            SonicLights.IncreaseIntensity();
-                        }
-                        else
-                        {
-                            fadein = false;
-                        }
-                    }
-                    else
-                    {
-                        if (SonicLights.sonicLights[0].intensity >= 0.01)
-                        {
-                            SonicLights.DecreaseIntensity();
-                        }
-                        else
-                        {
-                            fadein = true;
-                        }
-                    }
-                }
-
                 //Sonic wave (raycast)
                 try
                 {
                     sonicOrigin = sonicEnd.transform.position;
+                    Item disarmedItem;
                     RaycastHit hit;
 
                     if (Physics.Raycast(sonicOrigin, sonicEnd.transform.TransformDirection(Vector3.forward), out hit, sonicRange))
@@ -407,14 +392,25 @@ namespace SonicScrewDriver
 
                             foreach (RagdollHand hand in creature.gameObject.GetComponentsInChildren<RagdollHand>())
                             {
-                                hand.UnGrab(true);
+                                if (hand.grabbedHandle != null)
+                                {
+                                    disarmedItem = hand.grabbedHandle.item;
+                                    hand.UnGrab(true);
+                                    if (hand.side == Side.Right)
+                                    {
+                                        disarmedItem.rb.AddRelativeForce(Vector3.right * 200f);
+                                    }
+                                    else
+                                    {
+                                        disarmedItem.rb.AddRelativeForce(Vector3.left * 200f);
+                                    }
+                                }
                             }
                         }
                     }
                 }
                 catch (Exception e)
                 {
-                    Debug.Log(e);
                 }
             }
         }
@@ -458,10 +454,10 @@ namespace SonicScrewDriver
             {
                 for (int i = 1; i < 5; i++)
                 {
-                    SonicLights.ToggleSingleLight(i);
+                    twlthLights.ToggleSingleLight(i);
                     yield return new WaitForSeconds(0.064f);
-                    SonicLights.ToggleSingleLight(i);
-                    Debug.Log("Activating " + SonicLights.sonicLights[0].intensity);
+                    twlthLights.ToggleSingleLight(i);
+                    Debug.Log("Activating " + twlthLights.sonicLights[0].intensity);
                     if (grippedLeft)
                     {
                         pressed = Player.currentCreature.handLeft.playerHand.controlHand.alternateUsePressed;
@@ -479,7 +475,67 @@ namespace SonicScrewDriver
                     }
                 }
             }
-            SonicLights.TurnOffLights();
+            twlthLights.TurnOffLights();
+            coroutineRunning = false;
+        }
+        IEnumerator PulsingLights()
+        {
+            twlthLights.TurnOnLights();
+            Debug.Log("Lights on");
+            bool pressed = true;
+            bool add;
+            float intensity = 0.001f;
+            //twlthLights.SetIntensity(0f);
+            while (pressed)
+            {
+                if (twlthLights.sonicLights[0].intensity <= 0.01f)
+                {
+                    add = true;
+                    twlthLights.SetIntensity(0.001f);
+                }
+                else
+                {
+                    add = false;
+                    twlthLights.SetIntensity(0.009f);
+                }
+                Debug.Log("Intensity set");
+                while(twlthLights.sonicLights[0].intensity <= 0.01f && twlthLights.sonicLights[0].intensity != 0f)
+                {
+                    if (add)
+                    {
+                        Debug.Log("Adding");
+                        twlthLights.AddIntensity(intensity);
+                    }
+                    else
+                    {
+                        Debug.Log("Subtracting");
+                        twlthLights.DecreaseIntensity(intensity);
+                    }
+                    Debug.Log("Waiting");
+                    yield return new WaitForSeconds(0.05f);
+                    Debug.Log("Intensity: " + twlthLights.sonicLights[0].intensity);
+                    if (grippedLeft)
+                    {
+                        Debug.Log("Left");
+                        pressed = Player.currentCreature.handLeft.playerHand.controlHand.alternateUsePressed;
+                    }
+                    if (grippedRight)
+                    {
+                        Debug.Log("Right");
+                        pressed = Player.currentCreature.handRight.playerHand.controlHand.alternateUsePressed;
+                    }
+                    if (pressed == false)
+                    {
+                        Debug.Log("Pressed is false");
+                        twlthLights.SetIntensity(0.003f);
+                        twlthLights.TurnOffLights();
+                        coroutineRunning = false;
+                        yield break;
+                    }
+                }
+                yield return null;
+            }
+            Debug.Log("End of iterator PulsingLights");
         }
 
         IEnumerator extendSonicInput()

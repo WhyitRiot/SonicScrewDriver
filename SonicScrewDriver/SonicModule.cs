@@ -1,16 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ThunderRoad;
-using UnityEngine;
 
 namespace SonicScrewDriver
 {
     public class SonicModule : ItemModule
     {
-        //2, 3, 4, 10, 11
+        //2, 3, 4, 10, 11, 12
         public int sonicType;
 
 
@@ -24,7 +19,9 @@ namespace SonicScrewDriver
 
         //Light
         public String light;
+        public int lightNumber;
         public String lightGroup;
+        public String[] lightObjects;
 
         //Collider
         public String collider;
