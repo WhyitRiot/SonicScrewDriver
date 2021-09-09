@@ -23,6 +23,9 @@ namespace SonicScrewDriver
         public String lightGroup;
         public String[] lightObjects;
 
+        //VFX
+        public String vfx;
+
         //Collider
         public String collider;
 

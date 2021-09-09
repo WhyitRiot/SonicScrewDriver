@@ -31,7 +31,12 @@ namespace SonicScrewDriver
         int retractAnimHash;
 
         Light sonicLight;
-        static SonicLights twlthLights;
+        SonicLights twlthLights;
+        SonicLights secLights;
+
+        VisualEffect disarm;
+        VisualEffect disarm2;
+        VisualEffect vfx;
 
         List<AudioSource> audioSources = new List<AudioSource>();
         AudioSource sonic;
@@ -116,8 +121,25 @@ namespace SonicScrewDriver
             }
             if (!String.IsNullOrEmpty(module.lightGroup))
             {
-                twlthLights = new SonicLights(module.lightNumber, module.lightObjects, item.GetCustomReference(module.lightGroup).gameObject);
-                twlthLights.ToggleLights();
+                if (sonicType == 12)
+                {
+                    twlthLights = new SonicLights(module.lightNumber, module.lightObjects, item.GetCustomReference(module.lightGroup).gameObject);
+                    twlthLights.ToggleLights();
+                }
+                if (sonicType == 2)
+                {
+                    secLights = new SonicLights(module.lightNumber, module.lightObjects, item.GetCustomReference(module.lightGroup).gameObject);
+                    secLights.ToggleLights();
+                }
+            }
+
+            //VFX
+            if (!String.IsNullOrEmpty(module.vfx))
+            {
+                disarm = item.GetCustomReference(module.vfx).GetComponent<VisualEffect>();
+                disarm2 = GameObject.Instantiate(disarm);
+                disarm.transform.parent = null;
+                disarm2.transform.parent = null;
             }
 
             //Animation setup
@@ -164,11 +186,11 @@ namespace SonicScrewDriver
                     click.Play();
                     sonicPlaying = true;
 
-                    if (sonicType != 12)
+                    if (sonicType != 12 && sonicType != 2)
                     {
                         sonicLight.enabled = true;
                     }
-                    else
+                    else if (sonicType != 2)
                     {
                         if (doublePress && !coroutineRunning)
                         {
@@ -196,6 +218,10 @@ namespace SonicScrewDriver
                             }
                         }
                     }
+                    else
+                    {
+                        secLights.ToggleLights();
+                    }
                 }
             }
             if (action == Interactable.Action.AlternateUseStop)
@@ -207,16 +233,20 @@ namespace SonicScrewDriver
                     sonicPlaying = false;
                     unClick.Play();
 
-                    if (sonicType != 12)
+                    if (sonicType != 12 && sonicType != 2)
                     {
                         sonicLight.enabled = false;
                     }
-                    else
+                    else if (sonicType !=2)
                     {
                         if (!doublePress)
                         {
                             twlthLights.ToggleLights();
                         }
+                    }
+                    else
+                    {
+                        secLights.ToggleLights();
                     }
                     doublePress = false;
                 }
@@ -389,20 +419,25 @@ namespace SonicScrewDriver
                         else if (hit.collider.GetComponentInParent<Creature>() && hit.collider.GetComponentInParent<Creature>() != Player.currentCreature)
                         {
                             Creature creature = hit.collider.GetComponentInParent<Creature>();
-
+                            int count = 0;
                             foreach (RagdollHand hand in creature.gameObject.GetComponentsInChildren<RagdollHand>())
                             {
+                                count++;
+                                vfx = disarm;
                                 if (hand.grabbedHandle != null)
                                 {
+                                    if (count == 2) vfx = disarm2;
                                     disarmedItem = hand.grabbedHandle.item;
+                                    vfx.gameObject.transform.position = hand.transform.position;
+                                    vfx.Play();
                                     hand.UnGrab(true);
                                     if (hand.side == Side.Right)
                                     {
-                                        disarmedItem.rb.AddRelativeForce(Vector3.right * 200f);
+                                        disarmedItem.rb.AddRelativeForce(Vector3.right * 300f);
                                     }
                                     else
                                     {
-                                        disarmedItem.rb.AddRelativeForce(Vector3.left * 200f);
+                                        disarmedItem.rb.AddRelativeForce(Vector3.left * 300f);
                                     }
                                 }
                             }
