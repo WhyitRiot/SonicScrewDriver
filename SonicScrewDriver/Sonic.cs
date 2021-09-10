@@ -50,6 +50,9 @@ namespace SonicScrewDriver
         AudioSource unClick;
         AudioSource clasp;
         AudioSource jingle;
+        AudioSource disarmSfx;
+        AudioSource disarmSfx2;
+        AudioSource sfx;
 
         CapsuleCollider collider;
 
@@ -140,6 +143,8 @@ namespace SonicScrewDriver
                 disarm2 = GameObject.Instantiate(disarm);
                 disarm.transform.parent = null;
                 disarm2.transform.parent = null;
+                disarmSfx = item.GetCustomReference(module.vfx).GetComponent<AudioSource>();
+                disarmSfx2 = item.GetCustomReference(module.vfx).GetComponent<AudioSource>();
             }
 
             //Animation setup
@@ -420,15 +425,24 @@ namespace SonicScrewDriver
                         {
                             Creature creature = hit.collider.GetComponentInParent<Creature>();
                             int count = 0;
+                            System.Random r = new System.Random();
+                            double rand = (r.NextDouble()*0.4) + 0.8;
                             foreach (RagdollHand hand in creature.gameObject.GetComponentsInChildren<RagdollHand>())
                             {
                                 count++;
                                 vfx = disarm;
+                                sfx = disarmSfx;
                                 if (hand.grabbedHandle != null)
                                 {
-                                    if (count == 2) vfx = disarm2;
+                                    if (count == 2)
+                                    {
+                                        vfx = disarm2;
+                                        sfx = disarmSfx2;
+                                    }
+                                    sfx.pitch = (float)rand;
                                     disarmedItem = hand.grabbedHandle.item;
                                     vfx.gameObject.transform.position = hand.transform.position;
+                                    sfx.Play();
                                     vfx.Play();
                                     hand.UnGrab(true);
                                     if (hand.side == Side.Right)
