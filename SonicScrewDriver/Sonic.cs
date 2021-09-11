@@ -22,7 +22,8 @@ namespace SonicScrewDriver
         float pressCooldown = 0.5f;
         GameObject sonicEnd;
         Vector3 sonicOrigin;
-        float sonicRange = 200f;
+        float sonicRange = 300f;
+        float time = 0.0f;
 
         Animator sonicExtendAnimate;
         int extendAnimPathHash;
@@ -254,6 +255,7 @@ namespace SonicScrewDriver
                         secLights.ToggleLights();
                     }
                     doublePress = false;
+                    time = 0.0f;
                 }
             }
             if (action == Interactable.Action.UseStart)
@@ -387,7 +389,10 @@ namespace SonicScrewDriver
             {
                 //Activate sonic function
                 ToggleSonic(handOne);
-                AdjustPitch();
+                if (sonicType != 2 && sonicType != 3)
+                {
+                    AdjustPitch();
+                }
 
                 //Sonic wave (raycast)
                 try
@@ -398,6 +403,10 @@ namespace SonicScrewDriver
 
                     if (Physics.Raycast(sonicOrigin, sonicEnd.transform.TransformDirection(Vector3.forward), out hit, sonicRange))
                     {
+                        if (time == 0.0f)
+                        {
+                            time = Time.time;
+                        }
                         if (extended)
                         {
                             if (hit.collider.GetComponentInParent<Creature>())
@@ -421,7 +430,7 @@ namespace SonicScrewDriver
                                 hit.rigidbody.AddForce(-hit.normal * 200f);
                             }
                         }
-                        else if (hit.collider.GetComponentInParent<Creature>() && hit.collider.GetComponentInParent<Creature>() != Player.currentCreature)
+                        else if (hit.collider.GetComponentInParent<Creature>() && hit.collider.GetComponentInParent<Creature>() != Player.currentCreature && Time.time - time >= 1.0f)
                         {
                             Creature creature = hit.collider.GetComponentInParent<Creature>();
                             int count = 0;
@@ -447,14 +456,15 @@ namespace SonicScrewDriver
                                     hand.UnGrab(true);
                                     if (hand.side == Side.Right)
                                     {
-                                        disarmedItem.rb.AddRelativeForce(Vector3.right * 300f);
+                                        disarmedItem.rb.AddRelativeForce(Vector3.forward * 1000f);
                                     }
                                     else
                                     {
-                                        disarmedItem.rb.AddRelativeForce(Vector3.left * 300f);
+                                        disarmedItem.rb.AddRelativeForce(Vector3.forward * 1000f);
                                     }
                                 }
                             }
+                            time = 0.0f;
                         }
                     }
                 }
