@@ -215,14 +215,6 @@ namespace SonicScrewDriver
                         else
                         {
                             twlthLights.ToggleLights();
-                            if (extended == true)
-                            {
-                                twlthLights.SetMode(1);
-                            }
-                            else
-                            {
-                                twlthLights.SetMode(0);
-                            }
                         }
                     }
                     else
@@ -273,6 +265,7 @@ namespace SonicScrewDriver
                     if (sonicType == 12)
                     {
                         extended = true;
+                        twlthLights.SetMode(1);
                     }
                 }
                 if (sonicType == 3 || sonicType == 4)
@@ -293,6 +286,7 @@ namespace SonicScrewDriver
                 if (sonicType == 12)
                 {
                     extended = false;
+                    twlthLights.SetMode(0);
                     twlthLights.SetIntensity(0.003f);
                 }
             }
@@ -448,7 +442,6 @@ namespace SonicScrewDriver
                                     disarmedItem = hand.grabbedHandle.item;
                                     vfx.gameObject.transform.position = hand.transform.position;
                                     sfx.Play();
-                                    vfx.Play();
                                     hand.UnGrab(true);
                                     if (hand.side == Side.Right)
                                     {
@@ -458,6 +451,7 @@ namespace SonicScrewDriver
                                     {
                                         disarmedItem.rb.AddRelativeForce(Vector3.forward * 1000f);
                                     }
+                                    vfx.Play();
                                 }
                             }
                             time = 0.0f;
