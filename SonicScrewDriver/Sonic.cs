@@ -108,11 +108,6 @@ namespace SonicScrewDriver
                 audioSources.Add(jingle);
             }
 
-            foreach (AudioSource i in audioSources)
-            {
-                i.volume = GameManager.options.effectVolume;
-            }
-
             //Raycast setup
             sonicEnd = item.GetCustomReference("sonicEnd").gameObject;
             sonicOrigin = sonicEnd.transform.position;
@@ -146,6 +141,8 @@ namespace SonicScrewDriver
                 disarm2.transform.parent = null;
                 disarmSfx = item.GetCustomReference(module.vfx).GetComponent<AudioSource>();
                 disarmSfx2 = item.GetCustomReference(module.vfx).GetComponent<AudioSource>();
+                audioSources.Add(disarmSfx);
+                audioSources.Add(disarmSfx2);
             }
 
             //Animation setup
@@ -159,12 +156,16 @@ namespace SonicScrewDriver
             if (!String.IsNullOrEmpty(module.extendAnimPathHash)) extendAnimPathHash = Animator.StringToHash(module.extendAnimPathHash);
             if (!String.IsNullOrEmpty(module.retractAnimPathHash)) retractAnimPathHash = Animator.StringToHash(module.retractAnimPathHash);
 
-
-
             //Collider to track screwdriver movement
             if (!String.IsNullOrEmpty(module.collider)) collider = item.GetCustomReference("collider").GetComponent<CapsuleCollider>();
             if (!String.IsNullOrEmpty(module.slide)) slide = item.GetCustomReference("slide");
             if (!String.IsNullOrEmpty(module.slide)) slidePos = new Vector3(slide.localPosition.x, slide.localPosition.y, slide.localPosition.z);
+
+            //Volume control
+            foreach (AudioSource i in audioSources)
+            {
+                i.outputAudioMixerGroup = GameManager.GetAudioMixerGroup(AudioMixerName.Effect);
+            }
 
             //Event subscribers
             item.OnGrabEvent += Item_OnGrabEvent;
@@ -368,13 +369,6 @@ namespace SonicScrewDriver
 
         public void Update()
         {
-
-            //Fix volume
-            foreach (AudioSource i in audioSources)
-            {
-                i.volume = GameManager.options.effectVolume + 1;
-            }
-
             //Double press cooldown
             if (pressCooldown > 0)
             {
@@ -407,6 +401,7 @@ namespace SonicScrewDriver
                         {
                             time = Time.time;
                         }
+                        // "Intense sonic wave" feature
                         if (extended)
                         {
                             if (hit.collider.GetComponentInParent<Creature>())
@@ -430,7 +425,8 @@ namespace SonicScrewDriver
                                 hit.rigidbody.AddForce(-hit.normal * 200f);
                             }
                         }
-                        else if (hit.collider.GetComponentInParent<Creature>() && hit.collider.GetComponentInParent<Creature>() != Player.currentCreature && Time.time - time >= 1.0f)
+                        // Disarm feature
+                        else if (hit.collider.GetComponentInParent<Creature>() && hit.collider.GetComponentInParent<Creature>() != Player.currentCreature && Time.time - time >= 1.25f)
                         {
                             Creature creature = hit.collider.GetComponentInParent<Creature>();
                             int count = 0;
@@ -594,7 +590,6 @@ namespace SonicScrewDriver
                 }
                 yield return null;
             }
-            Debug.Log("End of iterator PulsingLights");
         }
 
         IEnumerator extendSonicInput()
