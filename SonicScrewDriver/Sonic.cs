@@ -123,6 +123,7 @@ namespace SonicScrewDriver
                 if (sonicType == 12)
                 {
                     twlthLights = new SonicLights(module.lightNumber, module.lightObjects, item.GetCustomReference(module.lightGroup).gameObject);
+                    twlthLights.SetMode(0);
                     twlthLights.ToggleLights();
                 }
                 if (sonicType == 2)
@@ -265,7 +266,10 @@ namespace SonicScrewDriver
                     if (sonicType == 12)
                     {
                         extended = true;
-                        twlthLights.SetMode(1);
+                        if (!coroutineRunning)
+                        {
+                            twlthLights.SetMode(1);
+                        }
                     }
                 }
                 if (sonicType == 3 || sonicType == 4)
@@ -286,7 +290,10 @@ namespace SonicScrewDriver
                 if (sonicType == 12)
                 {
                     extended = false;
-                    twlthLights.SetMode(0);
+                    if (!coroutineRunning)
+                    {
+                        twlthLights.SetMode(0);
+                    }
                     twlthLights.SetIntensity(0.003f);
                 }
             }
@@ -420,7 +427,7 @@ namespace SonicScrewDriver
                             }
                         }
                         // Disarm feature
-                        else if (hit.collider.GetComponentInParent<Creature>() && hit.collider.GetComponentInParent<Creature>() != Player.currentCreature && Time.time - time >= 1.25f)
+                        else if (hit.collider.GetComponentInParent<Creature>() && hit.collider.GetComponentInParent<Creature>() != Player.currentCreature && Time.time - time >= 1f)
                         {
                             Creature creature = hit.collider.GetComponentInParent<Creature>();
                             int count = 0;
