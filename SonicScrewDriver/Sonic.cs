@@ -452,11 +452,11 @@ namespace SonicScrewDriver
                                     hand.UnGrab(true);
                                     if (hand.side == Side.Right)
                                     {
-                                        disarmedItem.rb.AddRelativeForce(Vector3.forward * 1000f);
+                                        disarmedItem.rb.AddRelativeForce(Vector3.right * 1000f);
                                     }
                                     else
                                     {
-                                        disarmedItem.rb.AddRelativeForce(Vector3.forward * 1000f);
+                                        disarmedItem.rb.AddRelativeForce(Vector3.left * 1000f);
                                     }
                                     vfx.Play();
                                 }
