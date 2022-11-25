@@ -107,7 +107,7 @@ namespace SonicScrewDriver
                 jingle = item.GetCustomReference(module.jingle).GetComponent<AudioSource>();
                 audioSources.Add(jingle);
             }
-
+            Debug.Log("Sonic Sounds loaded");
             //Raycast setup
             sonicEnd = item.GetCustomReference("sonicEnd").gameObject;
             sonicOrigin = sonicEnd.transform.position;
@@ -132,7 +132,7 @@ namespace SonicScrewDriver
                     secLights.ToggleLights();
                 }
             }
-
+            Debug.Log("Sonic Lights loaded");
             //VFX
             if (!String.IsNullOrEmpty(module.vfx))
             {
@@ -167,7 +167,7 @@ namespace SonicScrewDriver
             {
                 i.outputAudioMixerGroup = GameManager.GetAudioMixerGroup(AudioMixerName.Effect);
             }
-
+            Debug.Log("Sonic Audio loaded.");
             //Event subscribers
             item.OnGrabEvent += Item_OnGrabEvent;
             item.OnHeldActionEvent += OnHeldAction;

@@ -92,9 +92,6 @@
     <Reference Include="PaintIn3D">
       <HintPath>F:\Steam Games Go Zoom\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\PaintIn3D.dll</HintPath>
     </Reference>
-    <Reference Include="PowerBooks">
-      <HintPath>F:\Steam Games Go Zoom\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\PowerBooks.dll</HintPath>
-    </Reference>
     <Reference Include="RainyReignGames.Collections">
       <HintPath>F:\Steam Games Go Zoom\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\RainyReignGames.Collections.dll</HintPath>
     </Reference>
@@ -149,6 +146,12 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
+    <Reference Include="ThunderRoad">
+      <HintPath>F:\Steam Games Go Zoom\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\ThunderRoad.dll</HintPath>
+    </Reference>
+    <Reference Include="ThunderRoad.Plugins">
+      <HintPath>F:\Steam Games Go Zoom\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\ThunderRoad.Plugins.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.Addressables">
       <HintPath>F:\Steam Games Go Zoom\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Unity.Addressables.dll</HintPath>
     </Reference>
@@ -344,14 +347,8 @@
     <Reference Include="UnityEngine.TLSModule">
       <HintPath>F:\Steam Games Go Zoom\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.TLSModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>F:\Steam Games Go Zoom\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.UI.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEngine.UIElementsModule">
       <HintPath>F:\Steam Games Go Zoom\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.UIElementsModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.UIModule">
-      <HintPath>F:\Steam Games Go Zoom\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.UIModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UmbraModule">
       <HintPath>F:\Steam Games Go Zoom\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.UmbraModule.dll</HintPath>
@@ -425,7 +422,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy /Y "$(TargetPath)" "D:/Unity Projects/BasSDK-master/BuildStaging/Catalog/Sonic Screwdriver Pack/$(TargetFileName)"
+    <PostBuildEvent>copy /Y "$(TargetPath)" "D:/Unity Projects/BasSDK-U11/BuildStaging/Catalogs/Sonic Screwdriver Pack/$(TargetFileName)"
+copy /Y "$(TargetPath)" "F:/Steam Games Go Zoom/steamapps/common/Blade &amp; Sorcery/BladeAndSorcery_Data/StreamingAssets/Mods/Sonic Screwdriver Pack/$(TargetFileName)"
 </PostBuildEvent>
   </PropertyGroup>
 </Project>
