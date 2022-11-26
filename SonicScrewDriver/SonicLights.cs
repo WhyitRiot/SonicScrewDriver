@@ -14,7 +14,6 @@ namespace SonicScrewDriver
             for (int i = 0; i < lights; i++)
             {
                 sonicLights[i] = lightGroup.transform.Find(lightObjects[i]).GetComponent<Light>();
-                Debug.Log("Light [" + i + "]: " + lightObjects[i]);
             }
         }
 

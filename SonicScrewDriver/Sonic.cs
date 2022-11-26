@@ -107,7 +107,7 @@ namespace SonicScrewDriver
                 jingle = item.GetCustomReference(module.jingle).GetComponent<AudioSource>();
                 audioSources.Add(jingle);
             }
-            Debug.Log("Sonic Sounds loaded");
+
             //Raycast setup
             sonicEnd = item.GetCustomReference("sonicEnd").gameObject;
             sonicOrigin = sonicEnd.transform.position;
@@ -132,7 +132,7 @@ namespace SonicScrewDriver
                     secLights.ToggleLights();
                 }
             }
-            Debug.Log("Sonic Lights loaded");
+
             //VFX
             if (!String.IsNullOrEmpty(module.vfx))
             {
@@ -167,7 +167,7 @@ namespace SonicScrewDriver
             {
                 i.outputAudioMixerGroup = GameManager.GetAudioMixerGroup(AudioMixerName.Effect);
             }
-            Debug.Log("Sonic Audio loaded.");
+
             //Event subscribers
             item.OnGrabEvent += Item_OnGrabEvent;
             item.OnHeldActionEvent += OnHeldAction;
@@ -513,20 +513,17 @@ namespace SonicScrewDriver
                     twlthLights.ToggleSingleLight(i);
                     yield return new WaitForSeconds(0.064f);
                     twlthLights.ToggleSingleLight(i);
-                    Debug.Log("Activating " + twlthLights.sonicLights[0].intensity);
+
                     if (grippedLeft)
                     {
                         pressed = Player.currentCreature.handLeft.playerHand.controlHand.alternateUsePressed;
-                        Debug.Log("Left hand AltUse");
                     }
                     if (grippedRight)
                     {
                         pressed = Player.currentCreature.handRight.playerHand.controlHand.alternateUsePressed;
-                        Debug.Log("Right hand AltUse");
                     }
                     if (pressed == false)
                     {
-                        Debug.Log("Pressed is false");
                         break;
                     }
                 }
@@ -537,7 +534,6 @@ namespace SonicScrewDriver
         IEnumerator PulsingLights()
         {
             twlthLights.TurnOnLights();
-            Debug.Log("Lights on");
             bool pressed = true;
             bool add;
             float intensity = 0.001f;
@@ -554,35 +550,27 @@ namespace SonicScrewDriver
                     add = false;
                     twlthLights.SetIntensity(0.009f);
                 }
-                Debug.Log("Intensity set");
                 while(twlthLights.sonicLights[0].intensity <= 0.01f && twlthLights.sonicLights[0].intensity != 0f)
                 {
                     if (add)
                     {
-                        Debug.Log("Adding");
                         twlthLights.AddIntensity(intensity);
                     }
                     else
                     {
-                        Debug.Log("Subtracting");
                         twlthLights.DecreaseIntensity(intensity);
                     }
-                    Debug.Log("Waiting");
                     yield return new WaitForSeconds(0.05f);
-                    Debug.Log("Intensity: " + twlthLights.sonicLights[0].intensity);
                     if (grippedLeft)
                     {
-                        Debug.Log("Left");
                         pressed = Player.currentCreature.handLeft.playerHand.controlHand.alternateUsePressed;
                     }
                     if (grippedRight)
                     {
-                        Debug.Log("Right");
                         pressed = Player.currentCreature.handRight.playerHand.controlHand.alternateUsePressed;
                     }
                     if (pressed == false)
                     {
-                        Debug.Log("Pressed is false");
                         twlthLights.SetIntensity(0.003f);
                         twlthLights.TurnOffLights();
                         coroutineRunning = false;
